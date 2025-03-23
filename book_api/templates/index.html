@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Library Management System</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+        
+        .book-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            grid-gap: 20px;
+        }
+        
+        .book-card {
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 15px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        
+        .book-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        
+        .book-info {
+            margin-bottom: 5px;
+        }
+        
+        .availability {
+            margin-top: 10px;
+            font-weight: bold;
+            color: green;
+        }
+        
+        .availability.low {
+            color: orange;
+        }
+        
+        .availability.none {
+            color: red;
+        }
+    </style>
+</head>
+<body>
+    <h1>Library Books</h1>
+    
+    <div class="book-container" id="bookContainer">
+        <p id="loading">Loading books...</p>
+    </div>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const bookContainer = document.getElementById('bookContainer');
+            
+            // Fetch books from API
+            fetch('http://localhost:8000/api/books/')
+                .then(response => response.json())
+                .then(books => {
+                    // Clear loading message
+                    bookContainer.innerHTML = '';
+                    
+                    // Display each book
+                    books.forEach(book => {
+                        const bookCard = document.createElement('div');
+                        bookCard.className = 'book-card';
+                        
+                        // Determine availability status and class
+                        let availabilityClass = 'availability';
+                        let availabilityText = `Available: ${book.available_copies} of ${book.total_copies}`;
+                        
+                        if (book.available_copies === 0) {
+                            availabilityClass += ' none';
+                        } else if (book.available_copies < book.total_copies / 3) {
+                            availabilityClass += ' low';
+                        }
+                        
+                        // Create book card HTML
+                        bookCard.innerHTML = `
+                            <div class="book-title">${book.title}</div>
+                            <div class="book-info"><strong>Author:</strong> ${book.author}</div>
+                            <div class="book-info"><strong>ISBN:</strong> ${book.isbn}</div>
+                            <div class="book-info"><strong>Publisher:</strong> ${book.publisher}</div>
+                            <div class="book-info"><strong>Year:</strong> ${book.publication_year}</div>
+                            <div class="${availabilityClass}">${availabilityText}</div>
+                        `;
+                        
+                        bookContainer.appendChild(bookCard);
+                    });
+                    
+                    // If no books are found
+                    if (books.length === 0) {
+                        bookContainer.innerHTML = '<p>No books available in the library.</p>';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching books:', error);
+                    bookContainer.innerHTML = '<p>Error loading books. Please try again later.</p>';
+                });
+        });
+    </script>
+</body>
+</html>
